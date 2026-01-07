@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model user {
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      String   @default("USER")
+  id        Int      @id @default(autoincrement())
+  recipes   recipe[]
+  reviews   review[]
+
+  @@map("user")
+}
+
+model category {
+  name    String   @unique
+  id      Int      @id @default(autoincrement())
+  recipes recipe[]
+
+  @@map("category")
+}
+
+model recipe {
+  title       String
+  image       String
+  time        Int
+  difficulty  String
+  calories    Int
+  servings    Int?
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  id          Int           @id @default(autoincrement())
+  categoryId  Int
+  authorId    Int?
+  ingredients ingredient[]
+  author      user?         @relation(fields: [authorId], references: [id])
+  category    category      @relation(fields: [categoryId], references: [id])
+  steps       recipe_step[]
+  reviews     review[]
+
+  @@map("recipe")
+}
+
+model ingredient {
+  item     String
+  amount   String
+  id       Int    @id @default(autoincrement())
+  recipeId Int
+  recipe   recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@map("ingredient")
+}
+
+model recipe_step {
+  number      Int
+  title       String
+  description String
+  id          Int    @id @default(autoincrement())
+  recipeId    Int
+  recipe      recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@map("recipe_step")
+}
+
+model review {
+  rating    Float
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  recipeId  Int
+  recipe    recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@map("review")
+}
